@@ -1,6 +1,7 @@
 ''' client to connect and receive dicts from server '''
 import socket
 from pprint import pprint
+import time
 import json
 
 class Client:
@@ -13,21 +14,15 @@ class Client:
         self.sock.connect((self.host, self.port))
 
     def send(self, data):
-        ''' send data to server '''
-        self.sock.send(data)
-
-    def receive(self):
-        ''' receive data from server '''
-        return self.sock.recv(1024)
-
-    def close(self):
-        ''' close connection '''
-        self.sock.close()
+        try:
+            self.sock.send(json.dumps(data).encode())
+            return self.sock.recv(2048).decode()
+        except socket.error as e:
+            print(e)
 
 if __name__ == '__main__':
     client = Client('localhost', 9999)
     while True:
-        d = client.receive()
-        di = json.loads(d.decode('utf-8'))
-        pprint(di)
-        client.send(b'ok')
+        time.sleep(1/60)
+        d = client.send({"wow":1})
+        pprint(json.loads(d))

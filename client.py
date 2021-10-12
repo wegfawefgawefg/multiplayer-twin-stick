@@ -17,16 +17,13 @@ class Client:
         self.sock.connect((self.host, self.port))
         self.game = Game()
 
-    def send_actions(self):
-        self.sock.send(json.dumps(self.game.player_actions).encode())
-        self.sock.recv(1024)
-
     def sync_game(self):
-        data = self.sock.recv(1024)
+        self.sock.send(json.dumps(self.game.player_actions).encode())
+        data = self.sock.recv(1024*8)
         if data:
-            data = json.loads(data.decode())
+            dec = data.decode()
+            data = json.loads(dec)
             self.game.deserialize(data)
-        self.sock.send(b'ok')
 
 def main():
     pygame.init()
@@ -47,9 +44,8 @@ def main():
                 if event.key == pygame.K_ESCAPE:
                     running = False
 
-        client.sync_game()
         client.game.handle_local_inputs(-1, events)
-        client.send_actions()
+        client.sync_game()
 
         screen.fill((0, 0, 0))
         client.game.draw(screen)

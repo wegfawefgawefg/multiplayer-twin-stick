@@ -37,16 +37,12 @@ class Server:
         print(f'new client {addr}, {player_id}')
         while True:
             time.sleep(1/60)
-            data = json.dumps(self.game.serialize())
-            d = bytes(data, 'utf-8')
-            client.send(d)
-            client.recv(1024)
-
             data = client.recv(1024)
             if data:
                 data = json.loads(data.decode('utf-8'))
                 self.game.handle_input(player_id, data)
-            client.send(b'ok')
+                d = json.dumps(self.game.serialize()).encode('utf-8')
+                client.send(d)
                     
             #    self.clients.remove(client)
             #    self.game.remove_player(player_id)
