@@ -36,31 +36,27 @@ class Server:
     def handle_client(self, client, addr, player_id):
         print(f'new client {addr}, {player_id}')
         while True:
-            try:
-                time.sleep(1/60)
-                print("sending")
-                data = json.dumps(self.game.serialize()).encode()
-                pprint(data)
-                client.send(data)
-                #data = client.recv(1024)
-                #if data:
-                #    print(data)
-                #    data = json.loads(data)
-                #    if data:
-                #        self.game.handle_input(player_id, data)
-                #else:
-                #    self.clients.remove(client)
-                #    self.game.remove_player(player_id)
-                #    client.close()
-                #    print('client disconnected')
-                #    break
-            except:
-                self.clients.remove(client)
-                self.game.remove_player(id)
-                client.close()
-                print('client disconnected')
-                break
+            time.sleep(1/60)
+            data = json.dumps(self.game.serialize())
+            d = bytes(data, 'utf-8')
+            client.send(d)
+            client.recv(1024)
+
+            data = client.recv(1024)
+            if data:
+                data = json.loads(data.decode('utf-8'))
+                self.game.handle_input(player_id, data)
+            client.send(b'ok')
+                    
+            #    self.clients.remove(client)
+            #    self.game.remove_player(player_id)
+            #    client.close()
+            #    print('client disconnected')
+            #    break
 
 if __name__ == '__main__':
     server = Server('localhost', 1234)
-    server.accept_connections()
+    threading.Thread(target=server.accept_connections).start()
+    while True:
+        time.sleep(1/60)
+        server.game.tic()

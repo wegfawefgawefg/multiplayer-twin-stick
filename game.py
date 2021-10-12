@@ -18,8 +18,8 @@ class Player:
     WIDTH = 10
     SPEED = 10
     FIRE_DELAY = 30
-    def __init__(self, pos, id):
-        self.id = id
+    def __init__(self, pos, uuid):
+        self.uuid = uuid
         self.vel = Vector2(0, 0)
         self.pos = pos
         self.aim = Vector2(1, 0)
@@ -76,23 +76,25 @@ class Player:
 
     def serialize(self):
         return {
-            "id": self.id,
-            "px": self.pos.x,
-            "py": self.pos.y,
-            "ax": self.aim.x,
-            "ay": self.aim.y,
-            "cr": self.color[0],
-            "cg": self.color[1],
-            "cb": self.color[2],
+            "uuid": self.uuid,
+            "pos": (self.pos.x, self.pos.y),
+            "aim": (self.aim.x, self.aim.y),
+            "color": self.color,
+            "time_since_shot": self.time_since_shot,
+            "shooting": self.shooting
         }
     
+    @classmethod
     def deserialize(self, data):
-        self.id = int(data["id"])
-        self.pos.x = int(data["px"])
-        self.pos.y = int(data["py"])
-        self.aim.x = int(data["ax"])
-        self.aim.y = int(data["ay"])
-        self.color = (int(data["cr"]), int(data["cg"]), int(data["cb"]))
+        new_player = Player(
+            pos=Vector2(*data["pos"]),
+            uuid=data["uuid"]
+        )
+        new_player.aim = Vector2(*data["aim"])
+        new_player.color = data["color"]
+        new_player.time_since_shot = data["time_since_shot"]
+        new_player.shooting = data["shooting"]
+        return new_player
 
 class Bullet:
     SIZE = 10
@@ -109,17 +111,16 @@ class Bullet:
 
     def serialize(self):
         return {
-            "px": self.pos.x,
-            "py": self.pos.y,
-            "d": self.direction.x,
-            "dy": self.direction.y,
+            "pos": (self.pos.x, self.pos.y),
+            "direction": (self.direction.x, self.direction.y)
         }
 
+    @classmethod
     def deserialize(self, data):
-        self.pos.x = data["px"]
-        self.pos.y = data["py"]
-        self.direction.x = data["d"]
-        self.direction.y = data["dy"]
+        new_bullet = Bullet(
+            Vector2(*data["pos"]), 
+            Vector2(*data["direction"]))
+        return new_bullet
 
 class Game:
     def __init__(self):
@@ -128,22 +129,22 @@ class Game:
 
         self.player_actions = {"mu":"", "mr":"", "s":False, "ax":-1, "ay":-1}
 
-        self.id_to_player = {}
+        self.uuid_to_player = {}
         self.players = []
         self.bullets = []
 
-    def handle_input(self, player_id, data):
-        self.id_to_player[player_id].act(data)
+    def handle_input(self, uuid, data):
+        self.uuid_to_player[uuid].set_actions(data)
 
-    def add_player(self, player_id):
+    def add_player(self, uuid):
         pos = Vector2(random.randint(0, self.width), random.randint(0, self.height))
-        new_player = Player(pos, player_id)
-        self.id_to_player[player_id] = new_player
+        new_player = Player(pos, uuid)
+        self.uuid_to_player[uuid] = new_player
         self.players.append(new_player)
 
-    def remove_player(self, player_id):
-        self.players.remove(self.id_to_player[player_id])
-        del self.id_to_player[player_id]
+    def remove_player(self, uuid):
+        self.players.remove(self.uuid_to_player[uuid])
+        del self.uuid_to_player[uuid]
 
     def draw(self, screen):
         for player in self.players:
@@ -177,8 +178,8 @@ class Game:
             for player in self.players:
                 if bullet.pos.distance_to(player.pos) < player.WIDTH:
                     self.bullets.remove(bullet)
-                    del self.id_to_player[player.id]
-                    self.players.remove(player)
+                    self.remove_player(player.uuid)
+                    self.add_player(player.uuid)
 
     def serialize(self):
         return {
@@ -187,10 +188,10 @@ class Game:
         }
 
     def deserialize(self, data):
-        self.players = [Player.deserialize(player) for player in data['players']]
-        self.bullets = [Bullet.deserialize(bullet) for bullet in data['bullets']]
+        self.players = [Player.deserialize(d) for d in data['players']]
+        self.bullets = [Bullet.deserialize(d) for d in data['bullets']]
 
-    def handle_local_inputs(self, player_id, events):
+    def handle_local_inputs(self, uuid, events):
         for event in events:
             if event.type == pygame.KEYDOWN:
                 # use wasd please
@@ -226,7 +227,8 @@ class Game:
         self.player_actions["ax"] = mouse_pos.x
         self.player_actions["ay"] = mouse_pos.y
 
-        self.id_to_player[player_id].set_actions(self.player_actions)
+        if not uuid == -1:
+            self.uuid_to_player[uuid].set_actions(self.player_actions)
 
 def main():
     pygame.init()
