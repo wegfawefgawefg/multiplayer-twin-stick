@@ -51,7 +51,7 @@ class Server:
             #    break
 
 if __name__ == '__main__':
-    server = Server('localhost', 9999)
+    server = Server('0.0.0.0', 9999)
     threading.Thread(target=server.accept_connections).start()
     while True:
         time.sleep(1/60)
