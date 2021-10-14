@@ -27,7 +27,7 @@ class Client:
 
 def main():
     pygame.init()
-    client = Client('localhost', 1234)
+    client = Client('144.202.109.140', 1234)
 
     pygame.display.set_caption('Shooter')
     screen = pygame.display.set_mode((500, 500))

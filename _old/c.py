@@ -21,7 +21,9 @@ class Client:
             print(e)
 
 if __name__ == '__main__':
-    client = Client('localhost', 9999)
+    url = "144.202.109.140"
+    client = Client(url, 9999)
+
     while True:
         time.sleep(1/60)
         d = client.send({"wow":1})
