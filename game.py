@@ -118,7 +118,7 @@ class Bullet:
     @classmethod
     def deserialize(self, data):
         new_bullet = Bullet(
-            Vector2(*data["pos"]), 
+            Vector2(*data["pos"]),   
             Vector2(*data["direction"]))
         return new_bullet
 
@@ -253,10 +253,13 @@ def main():
         game.handle_local_inputs(local_player_id, events)
         game.tic()
 
-        if not local_player_id in game.id_to_player:
+        if not local_player_id in game.uuid_to_player:
             game.add_player(local_player_id)
 
         screen.fill((0, 0, 0))
         game.draw(screen)
         pygame.display.flip()
         clock.tick(60)
+
+if __name__ == "__main__":
+    main()
