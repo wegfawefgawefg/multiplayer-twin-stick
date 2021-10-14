@@ -47,6 +47,13 @@ class Server:
                 data = pickle.loads(data)
                 self.game.handle_input(player_id, data)
                 client.send(pickle.dumps(self.game.serialize(), pickle.HIGHEST_PROTOCOL))
+            else:
+                self.clients.remove(client)
+                self.game.remove_player(player_id)
+                client.close()
+                print('client disconnected')
+                break
+
                        
 if __name__ == '__main__':
     # server = Server('localhost', 9999)
