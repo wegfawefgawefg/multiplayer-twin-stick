@@ -14,16 +14,19 @@ from pygame.math import Vector2
 
 DIRECTIONS = set(["u", "d", "l", "r"])
 
+
 class Player:
     WIDTH = 10
     SPEED = 10
     FIRE_DELAY = 30
+
     def __init__(self, pos, uuid):
         self.uuid = uuid
         self.vel = Vector2(0, 0)
         self.pos = pos
         self.aim = Vector2(1, 0)
-        self.color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        self.color = (random.randint(0, 255), random.randint(
+            0, 255), random.randint(0, 255))
         self.time_since_shot = 0
         self.shooting = False
 
@@ -65,14 +68,16 @@ class Player:
     def shoot(self, bullets):
         if self.shooting:
             if self.time_since_shot > self.FIRE_DELAY:
-                pos = self.pos + self.aim * (self.WIDTH + Bullet.SIZE + 1.0) / 2
+                pos = self.pos + self.aim * \
+                    (self.WIDTH + Bullet.SIZE + 1.0) / 2
                 bullets.append(Bullet(pos, self.aim))
                 self.time_since_shot = 0
             self.shooting = False
 
     def draw(self, surface):
         pygame.draw.circle(surface, self.color, self.pos, self.WIDTH)
-        pygame.draw.line(surface, (0, 0, 255), self.pos, self.pos + self.aim * 100)
+        pygame.draw.line(surface, (0, 0, 255), self.pos,
+                         self.pos + self.aim * 100)
 
     def serialize(self):
         return {
@@ -83,7 +88,7 @@ class Player:
             "time_since_shot": self.time_since_shot,
             "shooting": self.shooting
         }
-    
+
     @classmethod
     def deserialize(self, data):
         new_player = Player(
@@ -96,9 +101,11 @@ class Player:
         new_player.shooting = data["shooting"]
         return new_player
 
+
 class Bullet:
-    SIZE = 10
+    SIZE = 5
     SPEED = 10
+
     def __init__(self, pos, direction):
         self.pos = pos
         self.direction = direction
@@ -118,16 +125,18 @@ class Bullet:
     @classmethod
     def deserialize(self, data):
         new_bullet = Bullet(
-            Vector2(*data["pos"]), 
+            Vector2(*data["pos"]),
             Vector2(*data["direction"]))
         return new_bullet
+
 
 class Game:
     def __init__(self):
         self.width = 500
         self.height = 500
 
-        self.player_actions = {"mu":"", "mr":"", "s":False, "ax":-1, "ay":-1}
+        self.player_actions = {"mu": "", "mr": "",
+                               "s": False, "ax": -1, "ay": -1}
 
         self.uuid_to_player = {}
         self.players = []
@@ -137,7 +146,8 @@ class Game:
         self.uuid_to_player[uuid].set_actions(data)
 
     def add_player(self, uuid):
-        pos = Vector2(random.randint(0, self.width), random.randint(0, self.height))
+        pos = Vector2(random.randint(0, self.width),
+                      random.randint(0, self.height))
         new_player = Player(pos, uuid)
         self.uuid_to_player[uuid] = new_player
         self.players.append(new_player)
@@ -153,7 +163,7 @@ class Game:
             bullet.draw(screen)
 
     def tic(self):
-        #pprint(self.player_actions)
+        # pprint(self.player_actions)
         for bullet in self.bullets:
             bullet.tic()
         self.check_hits()
@@ -162,7 +172,7 @@ class Game:
             player.tic()
             player.shoot(self.bullets)
         self.constrain_players()
-    
+
     def clear_bullets(self):
         for bullet in self.bullets:
             if bullet.pos.x < 0 or bullet.pos.x > self.width or bullet.pos.y < 0 or bullet.pos.y > self.height:
@@ -229,6 +239,7 @@ class Game:
 
         if not uuid == -1:
             self.uuid_to_player[uuid].set_actions(self.player_actions)
+
 
 def main():
     pygame.init()
