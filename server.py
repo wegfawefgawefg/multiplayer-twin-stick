@@ -37,7 +37,7 @@ class Server:
         print(f'new client {addr}, {player_id}')
         while True:
             time.sleep(1/60)
-            data = client.recv(1024)
+            data = client.recv(1024*16)
             if data:
                 data = json.loads(data.decode('utf-8'))
                 self.game.handle_input(player_id, data)
