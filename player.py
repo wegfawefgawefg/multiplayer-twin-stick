@@ -1,6 +1,7 @@
 import random
 import pygame
 from pygame import Vector2
+from pygame import Vector3
 
 
 class Player:
@@ -8,17 +9,18 @@ class Player:
     SPEED = 10
     FIRE_DELAY = 30
 
-    def __init__(self, pos, uuid):
+    def __init__(self, pos):
         self.type = 'player'
-        self.uuid = uuid
         self.vel = Vector2(0, 0)
         self.pos = pos
         self.aim = Vector2(1, 0)
-        self.color = (random.randint(0, 255), random.randint(
-            0, 255), random.randint(0, 255))
+        self.color = Vector3(random.randint(100, 200))
         self.time_since_shot = 0
         self.shooting = False
         self.alive = True
+
+    def kill(self):
+        self.alive = False
 
     def aim_at(self, pos):
         self.aim = pos - self.pos
@@ -44,9 +46,9 @@ class Player:
         if aim_x and aim_y:
             self.aim_at(Vector2(aim_x, aim_y))
 
-    def tic(self):
-        self.pos += self.vel
-        self.time_since_shot += 1
+    def update(self, dt):
+        self.pos += self.vel * dt
+        self.time_since_shot += dt
 
     def shoot(self):
         actually_shot = False

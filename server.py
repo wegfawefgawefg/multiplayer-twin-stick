@@ -1,58 +1,63 @@
-import json
-import socket
-import threading
-import time
-import random
-from pprint import pprint
+import pickle
+from uuid import uuid4
+
 from game import Game
+from twisted.internet import reactor
+from twisted.internet import task
+from twisted.internet.endpoints import TCP4ServerEndpoint
+from twisted.internet.protocol import Factory
+from twisted.internet.protocol import Protocol
 
-class Server:
-    def __init__(self, host, port):
-        self.host = host
-        self.port = port
-        
-        self.game = Game()
-        self.game.add_player(0)
-        self.game.add_player(1)
-        self.game.add_player(2)
-        self.game.add_player(3)
 
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.bind((self.host, self.port))
-        self.sock.listen(1)
-        self.clients = []
+class Server(Factory):
+    def __init__(self):
+        self.game = Game(server_mode=True)
 
-    def accept_connections(self):
+        self.game_loop = task.LoopingCall(self.game.update)
+        self.game_loop.start(1/60)
+
+        self.clients = {}
+
         print('waiting for connections')
-        while True:
-            time.sleep(1/60)
-            client, addr = self.sock.accept()
-            self.clients.append(client)
-            print('client connected')
-            player_id = random.randint(0, 1000000)
-            self.game.add_player(player_id)
-            threading.Thread(target=self.handle_client, args=(client, addr, player_id)).start()
 
-    def handle_client(self, client, addr, player_id):
-        print(f'new client {addr}, {player_id}')
-        while True:
-            time.sleep(1/60)
-            data = client.recv(1024)
-            if data:
-                data = json.loads(data.decode('utf-8'))
-                self.game.handle_input(player_id, data)
-                d = json.dumps(self.game.serialize()).encode('utf-8')
-                client.send(d)
-                    
-            #    self.clients.remove(client)
-            #    self.game.remove_player(player_id)
-            #    client.close()
-            #    print('client disconnected')
-            #    break
+    def buildProtocol(self, addr):
+        client = ServerGameClient(self)
+        self.clients[client.id] = client
+        return client
+
+
+class ServerGameClient(Protocol):
+    def __init__(self, factory):
+        self.factory = factory
+        self.id = str(uuid4())
+        self.factory.game.set_client(self)
+
+    def connectionMade(self):
+        print('client connected. id:', self.id)
+        self.factory.game.new_player(self.id)
+
+    def clientConnectionLost(self, connector, reason):
+        print('Lost connection.  Reason:', reason)
+        self.factory.game.remove_player(self.id)
+
+    def clientConnectionFailed(self, connector, reason):
+        print('Connection failed. Reason:', reason)
+
+    def updateConnectedClients(self, state):
+        for client in self.factory.clients.values():
+            client.transport.write(pickle.dumps(state))
+
+    def dataReceived(self, data):
+        action = pickle.loads(data)
+        self.factory.game.process_action(self.id, action)
+
+
+def main():
+    endpoint = TCP4ServerEndpoint(reactor, 8888)
+    endpoint.listen(Server())
+    reactor.run()
+    print('server stopped')
+
 
 if __name__ == '__main__':
-    server = Server('localhost', 1234)
-    threading.Thread(target=server.accept_connections).start()
-    while True:
-        time.sleep(1/60)
-        server.game.tic()
+    main()

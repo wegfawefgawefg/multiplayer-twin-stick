@@ -1,60 +1,57 @@
-import json
-import socket
-import threading
-import time
-import random
 import pickle
 
-import pygame
-from pprint import pprint
+from twisted.internet.protocol import Protocol
+from twisted.internet.protocol import ClientFactory
+from twisted.internet import reactor
+from twisted.internet import task
 
 from game import Game
 
 
-class Client:
-    def __init__(self, host, port):
-        self.host = host
-        self.port = port
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((self.host, self.port))
-        self.game = Game()
+class GameClientFactory(ClientFactory):
+    def startedConnecting(self, connector):
+        print('Started to connect.')
 
-    def sync_game(self):
-        self.sock.send(pickle.dumps(
-            self.game.player_actions, pickle.HIGHEST_PROTOCOL))
-        data = self.sock.recv(1024*8)
-        if data:
-            data = pickle.loads(data)
-            self.game.deserialize(data)
+    def buildProtocol(self, addr):
+        return GameClient(Game())
+
+    def clientConnectionLost(self, connector, reason):
+        print('Lost connection.  Reason:', reason)
+
+    def clientConnectionFailed(self, connector, reason):
+        print('Connection failed. Reason:', reason)
+
+
+class GameClient(Protocol):
+    def __init__(self, game, addr=None):
+        self.addr = addr
+        self.game = game
+        self.game.set_client(self)
+
+    def connectionMade(self):
+        print('Client connected.')
+        self.game_loop = task.LoopingCall(self.game.run)
+        deferred = self.game_loop.start(1/60)
+        deferred.addErrback(lambda _: reactor.stop())
+
+    def connectionLost(self, reason):
+        print(f'Client disconnected. reason={reason}')
+
+    def dataReceived(self, data):
+        state = pickle.loads(data)
+        self.game.process_state(state)
+
+    def sendMessage(self, msg):
+        print(f'Client send message. message={msg.__dict__}')
+        self.transport.write(pickle.dumps({
+            'type': msg.type,
+            'data': msg.__dict__
+        }))
 
 
 def main():
-    pygame.init()
-    host = '144.202.109.140'
-    port = 9999
-    client = Client(host, port)
-
-    pygame.display.set_caption('Shooter')
-    screen = pygame.display.set_mode((900, 900))
-
-    clock = pygame.time.Clock()
-    running = True
-    while running:
-        clock.tick(60)
-        events = pygame.event.get()
-        for event in events:
-            if event.type == pygame.QUIT:
-                running = False
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    running = False
-
-        client.game.handle_local_inputs(-1, events)
-        client.sync_game()
-
-        screen.fill((0, 0, 0))
-        client.game.draw(screen)
-        pygame.display.flip()
+    reactor.connectTCP('localhost', 8888, GameClientFactory())
+    reactor.run()
 
 
 if __name__ == '__main__':

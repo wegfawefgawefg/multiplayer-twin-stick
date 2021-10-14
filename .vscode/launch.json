@@ -8,18 +8,11 @@
       "name": "Python: Server",
       "type": "python",
       "request": "launch",
-      "program": "_server.py",
+      "program": "server.py",
       "console": "integratedTerminal"
     },
     {
       "name": "Python: Client",
-      "type": "python",
-      "request": "launch",
-      "program": "_client.py",
-      "console": "integratedTerminal"
-    },
-    {
-      "name": "Python: Real Client",
       "type": "python",
       "request": "launch",
       "program": "client.py",
