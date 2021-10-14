@@ -3,6 +3,7 @@ import socket
 import threading
 import time
 import random
+import pickle
 from pprint import pprint
 from game import Game
 
@@ -35,10 +36,9 @@ class Server:
             time.sleep(1/60)
             data = client.recv(1024*32)
             if data:
-                data = json.loads(data.decode('utf-8'))
+                data = pickle.loads(data)
                 self.game.handle_input(player_id, data)
-                d = json.dumps(self.game.serialize()).encode('utf-8')
-                client.send(d)
+                client.send(pickle.dumps(self.game.serialize()))
                     
             #    self.clients.remove(client)
             #    self.game.remove_player(player_id)
@@ -47,6 +47,7 @@ class Server:
             #    break
 
 if __name__ == '__main__':
+    # server = Server('localhost', 9999)
     server = Server('0.0.0.0', 9999)
     threading.Thread(target=server.accept_connections).start()
     while True:

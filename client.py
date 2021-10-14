@@ -3,6 +3,7 @@ import socket
 import threading
 import time
 import random
+import pickle
 
 import pygame
 from pprint import pprint
@@ -18,16 +19,16 @@ class Client:
         self.game = Game()
 
     def sync_game(self):
-        self.sock.send(json.dumps(self.game.player_actions).encode())
-        data = self.sock.recv(1024*8)
+        self.sock.send(pickle.dumps(self.game.player_actions))
+        data = self.sock.recv(1024*32)
         if data:
-            dec = data.decode()
-            data = json.loads(dec)
+            data = pickle.loads(data)
             self.game.deserialize(data)
 
 def main():
     pygame.init()
     client = Client('144.202.109.140', 9999)
+    # client = Client('localhost', 9999)
 
     pygame.display.set_caption('Shooter')
     screen = pygame.display.set_mode((Game.WIDTH, Game.HEIGHT))
