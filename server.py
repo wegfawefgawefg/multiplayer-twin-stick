@@ -12,10 +12,6 @@ class Server:
         self.port = port
         
         self.game = Game()
-        self.game.add_player(0)
-        self.game.add_player(1)
-        self.game.add_player(2)
-        self.game.add_player(3)
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((self.host, self.port))
@@ -37,7 +33,7 @@ class Server:
         print(f'new client {addr}, {player_id}')
         while True:
             time.sleep(1/60)
-            data = client.recv(1024*16)
+            data = client.recv(1024*32)
             if data:
                 data = json.loads(data.decode('utf-8'))
                 self.game.handle_input(player_id, data)
