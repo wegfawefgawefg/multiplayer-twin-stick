@@ -17,7 +17,7 @@ DIRECTIONS = set(["u", "d", "l", "r"])
 class Player:
     WIDTH = 10
     SPEED = 10
-    FIRE_DELAY = 30
+    FIRE_DELAY = 10
     def __init__(self, pos, uuid):
         self.uuid = uuid
         self.vel = Vector2(0, 0)
@@ -97,7 +97,7 @@ class Player:
         return new_player
 
 class Bullet:
-    SIZE = 10
+    SIZE = 5
     SPEED = 10
     def __init__(self, pos, direction):
         self.pos = pos
@@ -123,9 +123,11 @@ class Bullet:
         return new_bullet
 
 class Game:
+    WIDTH = 900
+    HEIGHT = 900
     def __init__(self):
-        self.width = 500
-        self.height = 500
+        self.width = Game.WIDTH
+        self.height = Game.HEIGHT
 
         self.player_actions = {"mu":"", "mr":"", "s":False, "ax":-1, "ay":-1}
 

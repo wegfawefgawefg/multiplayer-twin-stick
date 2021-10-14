@@ -27,10 +27,10 @@ class Client:
 
 def main():
     pygame.init()
-    client = Client('144.202.109.140', 1234)
+    client = Client('144.202.109.140', 9999)
 
     pygame.display.set_caption('Shooter')
-    screen = pygame.display.set_mode((500, 500))
+    screen = pygame.display.set_mode((Game.WIDTH, Game.HEIGHT))
 
     clock = pygame.time.Clock()
     running = True
