@@ -33,10 +33,10 @@ def main():
     pygame.display.set_caption('Shooter')
     screen = pygame.display.set_mode((Game.WIDTH, Game.HEIGHT))
 
-    clock = pygame.time.Clock()
+    # clock = pygame.time.Clock()
     running = True
     while running:
-        clock.tick(60)
+        # clock.tick(60)
         events = pygame.event.get()
         for event in events:
             if event.type == pygame.QUIT:
