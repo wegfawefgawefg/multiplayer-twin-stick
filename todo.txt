@@ -1,0 +1,5 @@
+- rollback queue of gamestates
+- server slow action api + fast action assume unhacked
+
+- periodic retroactive state diff resolution for specific hacks
+- just add local interpolation
