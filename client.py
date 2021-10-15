@@ -19,7 +19,7 @@ class Client:
         self.game = Game()
 
     def sync_game(self):
-        self.sock.send(pickle.dumps(self.game.player_actions, pickle.HIGHEST_PROTOCOL))
+        self.sock.send(pickle.dumps(self.game.player_actions))
         data = self.sock.recv(1024*32)
         if data:
             data = pickle.loads(data)

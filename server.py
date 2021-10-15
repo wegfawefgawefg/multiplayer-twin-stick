@@ -46,7 +46,8 @@ class Server:
             if data:
                 data = pickle.loads(data)
                 self.game.handle_input(player_id, data)
-                client.send(pickle.dumps(self.game.serialize(), pickle.HIGHEST_PROTOCOL))
+                # client.send(pickle.dumps(self.game.serialize(), pickle.HIGHEST_PROTOCOL))
+                client.send(pickle.dumps(self.game.serialize()))
             else:
                 self.clients.remove(client)
                 self.game.remove_player(player_id)
