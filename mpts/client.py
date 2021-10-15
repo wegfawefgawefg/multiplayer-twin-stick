@@ -1,3 +1,4 @@
+import bz2
 import pickle
 
 from twisted.internet.protocol import Protocol
@@ -5,7 +6,7 @@ from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor
 from twisted.internet import task
 
-from game import Game
+from mpts.game import Game
 
 
 class GameClientFactory(ClientFactory):
@@ -38,15 +39,19 @@ class GameClient(Protocol):
         print(f'Client disconnected. reason={reason}')
 
     def dataReceived(self, data):
-        state = pickle.loads(data)
+        state = pickle.loads(bz2.decompress(data))
         self.game.process_state(state)
 
     def sendMessage(self, msg):
-        print(f'Client send message. message={msg.__dict__}')
-        self.transport.write(pickle.dumps({
-            'type': msg.type,
-            'data': msg.__dict__
-        }))
+        # print(f'Client send message. message={msg.__dict__}')
+        self.transport.write(
+            bz2.compress(
+                pickle.dumps({
+                    'type': msg.type,
+                    'data': msg.__dict__
+                })
+            )
+        )
 
 
 def main():

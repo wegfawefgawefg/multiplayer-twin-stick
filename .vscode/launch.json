@@ -8,15 +8,15 @@
       "name": "Python: Server",
       "type": "python",
       "request": "launch",
-      "program": "server.py",
-      "console": "integratedTerminal"
+      "module": "mpts",
+      "args": ["--server"]
     },
     {
       "name": "Python: Client",
       "type": "python",
       "request": "launch",
-      "program": "client.py",
-      "console": "integratedTerminal"
+      "module": "mpts",
+      "args": ["--client"]
     },
     {
       "name": "Python: Attach using Process Id",

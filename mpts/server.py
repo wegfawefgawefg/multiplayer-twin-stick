@@ -1,7 +1,8 @@
+import bz2
 import pickle
 from uuid import uuid4
 
-from game import Game
+from mpts.game import Game
 from twisted.internet import reactor
 from twisted.internet import task
 from twisted.internet.endpoints import TCP4ServerEndpoint
@@ -36,19 +37,23 @@ class ServerGameClient(Protocol):
         print('client connected. id:', self.id)
         self.factory.game.new_player(self.id)
 
-    def clientConnectionLost(self, connector, reason):
+    def connectionLost(self, reason):
         print('Lost connection.  Reason:', reason)
         self.factory.game.remove_player(self.id)
 
-    def clientConnectionFailed(self, connector, reason):
+    def connectionFailed(self, reason):
         print('Connection failed. Reason:', reason)
 
     def updateConnectedClients(self, state):
         for client in self.factory.clients.values():
-            client.transport.write(pickle.dumps(state))
+            client.transport.write(
+                bz2.compress(
+                    pickle.dumps(state)
+                )
+            )
 
     def dataReceived(self, data):
-        action = pickle.loads(data)
+        action = pickle.loads(bz2.decompress(data))
         self.factory.game.process_action(self.id, action)
 
 

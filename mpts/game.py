@@ -1,16 +1,16 @@
 import pygame
 from pygame import Vector2
 
-from player import Player
-from bullet import Bullet
+from mpts.player import Player
+from mpts.bullet import Bullet
 
 pygame.init()
 
 
 class Game:
     def __init__(self, server_mode=False, client=None):
-        self.scale = 3
-        self.screen_size = Vector2(240, 240)
+        self.scale = 1
+        self.screen_size = Vector2(500, 500)
         self.clock = pygame.time.Clock()
         self.server_mode = server_mode
         self.client = client
@@ -39,10 +39,7 @@ class Game:
                         event.key == pygame.K_ESCAPE)):
                 pygame.quit()
                 quit()
-            elif event.type == pygame.KEYDOWN:
-                self.client.sendMessage(event)
-            elif event.type == pygame.KEYUP:
-                self.client.sendMessage(event)
+            self.client.sendMessage(event)
 
         self.update()
         self.draw()
@@ -66,10 +63,14 @@ class Game:
         if self.server_mode and self.client:
             self.update_connected_clients()
 
+        self.clean_dead_entities()
+
+    def clean_dead_entities(self):
         # cleanup dead entities
-        for uuid, entity in self.entities.items():
-            if not entity.alive:
-                del self.entities[uuid]
+        to_remove = [uuid for uuid, entity in self.entities.items()
+                     if entity.dead]
+        for uuid in to_remove:
+            del self.entities[uuid]
 
     def update_connected_clients(self):
         self.client.updateConnectedClients(self.get_state())
@@ -93,21 +94,21 @@ class Game:
         entity = self.entities[uuid]
         if event.type == pygame.KEYDOWN:
             if event.key in self.keys['up']:
-                entity.vel.y = -10
+                entity.vel.y = -100
             elif event.key in self.keys['down']:
-                entity.vel.y = 10
+                entity.vel.y = 100
             elif event.key in self.keys['left']:
-                entity.vel.x = -10
+                entity.vel.x = -100
             elif event.key in self.keys['right']:
-                entity.vel.x = 10
+                entity.vel.x = 100
         elif event.type == pygame.KEYUP:
-            if event.key in self.keys['up'] and entity.vel.y == -10:
+            if event.key in self.keys['up'] and entity.vel.y == -100:
                 entity.vel.y = 0
-            elif event.key in self.keys['down'] and entity.vel.y == 10:
+            elif event.key in self.keys['down'] and entity.vel.y == 100:
                 entity.vel.y = 0
-            elif event.key in self.keys['left'] and entity.vel.x == -10:
+            elif event.key in self.keys['left'] and entity.vel.x == -100:
                 entity.vel.x = 0
-            elif event.key in self.keys['right'] and entity.vel.x == 10:
+            elif event.key in self.keys['right'] and entity.vel.x == 100:
                 entity.vel.x = 0
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
@@ -115,6 +116,8 @@ class Game:
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:
                 entity.shooting = False
+        elif event.type == pygame.MOUSEMOTION:
+            entity.aim_at(event.pos)
 
     def process_state(self, state):
         for uuid, entity_state in state.items():

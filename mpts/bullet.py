@@ -10,9 +10,13 @@ class Bullet:
         self.type = 'bullet'
         self.pos = pos
         self.direction = direction
+        self.dead = False
 
-    def tic(self):
-        self.pos += self.direction * self.SPEED
+    def kill(self):
+        self.dead = True
+
+    def update(self, dt):
+        self.pos += self.direction * self.SPEED * dt
 
     def draw(self, surface):
         pygame.draw.circle(surface, (255, 0, 0), self.pos, self.SIZE)

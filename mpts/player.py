@@ -11,40 +11,21 @@ class Player:
 
     def __init__(self, pos):
         self.type = 'player'
-        self.vel = Vector2(0, 0)
+        self.vel = Vector2()
         self.pos = pos
         self.aim = Vector2(1, 0)
         self.color = Vector3(random.randint(100, 200))
         self.time_since_shot = 0
         self.shooting = False
-        self.alive = True
+        self.dead = False
 
     def kill(self):
-        self.alive = False
+        self.dead = True
 
     def aim_at(self, pos):
         self.aim = pos - self.pos
-        self.aim.normalize_ip()
-
-    def set_actions(self, actions):
-        move_up_down = actions.get('my')
-        move_left_right = actions.get('mx')
-        shoot = actions.get('s')
-        aim_x = actions.get('ax')
-        aim_y = actions.get('ay')
-
-        if move_up_down is not None:
-            self.vel.y = move_up_down
-        if move_left_right is not None:
-            self.vel.x = move_left_right
-
-        if self.vel != Vector2():
-            self.vel = self.vel.normalize() * self.SPEED
-
-        self.shooting = shoot
-
-        if aim_x and aim_y:
-            self.aim_at(Vector2(aim_x, aim_y))
+        if self.aim != Vector2():
+            self.aim.normalize_ip()
 
     def update(self, dt):
         self.pos += self.vel * dt
@@ -70,8 +51,10 @@ class Player:
             'pos': self.pos,
             'vel': self.vel,
             'aim': self.aim,
-            'alive': self.alive,
-            'color': self.color
+            'dead': self.dead,
+            'color': self.color,
+            'shooting': self.shooting,
+            'time_since_shot': self.time_since_shot
         }
 
     def set_state(self, data):
@@ -82,7 +65,11 @@ class Player:
                 self.vel = Vector2(value[0], value[1])
             elif key == 'aim':
                 self.aim = Vector2(value[0], value[1])
-            elif key == 'alive':
-                self.alive = value
+            elif key == 'dead':
+                self.dead = value
             elif key == 'color':
                 self.color = value
+            elif key == 'shooting':
+                self.shooting = value
+            elif key == 'time_since_shot':
+                self.time_since_shot = value
