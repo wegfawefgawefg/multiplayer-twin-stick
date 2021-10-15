@@ -14,7 +14,7 @@ class Server:
         
         self.game = Game()
 
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((self.host, self.port))
         self.sock.listen(1)
         self.clients = []
@@ -61,5 +61,5 @@ if __name__ == '__main__':
     server = Server('0.0.0.0', 9999)
     threading.Thread(target=server.accept_connections).start()
     while True:
-        time.sleep(1/60)
+        # time.sleep(1/60)
         server.game.tic()
