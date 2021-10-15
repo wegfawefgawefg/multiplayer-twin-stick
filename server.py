@@ -22,7 +22,7 @@ class Server:
     def accept_connections(self):
         print('waiting for connections')
         while True:
-            time.sleep(1/60)
+            # time.sleep(1/60)
             client, addr = self.sock.accept()
             self.clients.append(client)
             print('client connected')
