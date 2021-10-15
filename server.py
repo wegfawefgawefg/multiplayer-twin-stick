@@ -61,5 +61,5 @@ if __name__ == '__main__':
     server = Server('0.0.0.0', 9999)
     threading.Thread(target=server.accept_connections).start()
     while True:
-        time.sleep(1/120)
+        time.sleep(1/60)
         server.game.tic()
